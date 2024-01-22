@@ -9,6 +9,7 @@ import (
 
 type TodoService interface {
 	GetAllTodos() ([]entity.Todo, error)
+	GetUncompletedTodos() ([]entity.Todo, error)
 	GetTodo(id int) (entity.Todo, error)
 	CreateTodo(todo entity.Todo) error
 	UpdateTodo(todo entity.Todo) error
@@ -23,8 +24,8 @@ func NewTodoService(repo repository.TodoRepository) TodoService {
 	return todoServiceImpl{repo: repo}
 }
 
-func (r todoServiceImpl) GetAllTodos() ([]entity.Todo, error) {
-	result, err := r.repo.FindAll()
+func (s todoServiceImpl) GetAllTodos() ([]entity.Todo, error) {
+	result, err := s.repo.FindAll()
 
 	if err != nil {
 		return result, fmt.Errorf("TodoService: %w", err)
@@ -33,8 +34,10 @@ func (r todoServiceImpl) GetAllTodos() ([]entity.Todo, error) {
 	return result, nil
 }
 
-func (r todoServiceImpl) GetTodo(id int) (entity.Todo, error) {
-	result, err := r.repo.Find(id)
+func (s todoServiceImpl) GetUncompletedTodos() ([]entity.Todo, error) {
+	result, err := s.repo.Query(repository.TodoFilters{
+		Completed: false,
+	})
 
 	if err != nil {
 		return result, fmt.Errorf("TodoService: %w", err)
@@ -43,8 +46,18 @@ func (r todoServiceImpl) GetTodo(id int) (entity.Todo, error) {
 	return result, nil
 }
 
-func (r todoServiceImpl) CreateTodo(todo entity.Todo) error {
-	err := r.repo.Save(todo)
+func (s todoServiceImpl) GetTodo(id int) (entity.Todo, error) {
+	result, err := s.repo.Find(id)
+
+	if err != nil {
+		return result, fmt.Errorf("TodoService: %w", err)
+	}
+
+	return result, nil
+}
+
+func (s todoServiceImpl) CreateTodo(todo entity.Todo) error {
+	err := s.repo.Save(todo)
 
 	if err != nil {
 		return fmt.Errorf("TodoService: %w", err)
@@ -53,8 +66,8 @@ func (r todoServiceImpl) CreateTodo(todo entity.Todo) error {
 	return nil
 }
 
-func (r todoServiceImpl) UpdateTodo(todo entity.Todo) error {
-	err := r.repo.Update(todo)
+func (s todoServiceImpl) UpdateTodo(todo entity.Todo) error {
+	err := s.repo.Update(todo)
 
 	if err != nil {
 		return fmt.Errorf("TodoService: %w", err)
@@ -63,8 +76,8 @@ func (r todoServiceImpl) UpdateTodo(todo entity.Todo) error {
 	return nil
 }
 
-func (r todoServiceImpl) DeleteTodo(id int) error {
-	err := r.repo.Delete(id)
+func (s todoServiceImpl) DeleteTodo(id int) error {
+	err := s.repo.Delete(id)
 
 	if err != nil {
 		return fmt.Errorf("TodoService: %w", err)

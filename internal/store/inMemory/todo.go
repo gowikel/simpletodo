@@ -1,4 +1,4 @@
-package store
+package inMemory
 
 import (
 	"fmt"
@@ -29,6 +29,20 @@ func (s inMemoryStore) Find(id int) (entity.Todo, error) {
 	}
 
 	return entity.Todo{}, fmt.Errorf("not found")
+}
+
+func (s inMemoryStore) Query(
+	filter repository.TodoFilters,
+) ([]entity.Todo, error) {
+	result := make([]entity.Todo, 0, len(s.lst))
+
+	for _, todo := range s.lst {
+		if todo.Completed == filter.Completed {
+			result = append(result, todo)
+		}
+	}
+
+	return result, nil
 }
 
 func (s *inMemoryStore) Save(todo entity.Todo) error {

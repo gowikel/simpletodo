@@ -4,9 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	httpHandler "github.com/gowikel/simpletodo/internal/delivery/http"
 	"github.com/gowikel/simpletodo/internal/service"
-	"github.com/gowikel/simpletodo/internal/store"
+	store "github.com/gowikel/simpletodo/internal/store/inMemory"
 )
 
 func main() {
@@ -14,7 +15,15 @@ func main() {
 	todoService := service.NewTodoService(store)
 	todoHandler := httpHandler.NewTodoHandler(todoService)
 
-	http.HandleFunc("/todos", todoHandler.GetAllTodos)
+	r := mux.NewRouter()
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	r.HandleFunc("/todos", todoHandler.GetAllTodos).Methods("GET")
+	r.HandleFunc("/todos", todoHandler.CreateTodo).Methods("POST")
+	r.HandleFunc("/todos/{id}", todoHandler.GetTodo).Methods("GET")
+	r.HandleFunc("/todos/{id}", todoHandler.UpdateTodo).
+		Methods("POST", "PUT")
+	r.HandleFunc("/todos/{id}", todoHandler.DeleteTodo).
+		Methods("DELETE")
+
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
